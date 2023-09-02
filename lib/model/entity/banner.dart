@@ -20,6 +20,6 @@ class Banner extends Equatable {
 
   @override
   String toString() {
-    return 'Banner{id: $id, url: $url}';
+    return 'Banners{id: $id, url: $url}';
   }
 }
