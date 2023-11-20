@@ -4,15 +4,16 @@ name: Releases
 # Controls when the workflow will run
 on:
   push:
+    branches: [master]
   # Triggers the workflow on push or pull request events but only for the tagged
   pull_request:
-    branches:
-      - "master"
+    branches: [master]
+    types: [opened]
 
   # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  releases:
+  build:
     name: release apk
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -20,6 +21,8 @@ jobs:
       JAVA_VERSION: "11.0"
       FLUTTER_VERSION: "3.13.2"
     steps:
+      - uses: 8BitJonny/gh-get-current-pr@2.2.0
+        id: PR
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
@@ -27,11 +30,26 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           flutter-version: "3.13.2"
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
-      - run: flutter build apk --release
-      - uses: ncipollo/release-action@v1
+      - if: steps.PR.outputs.pr_found == 'true'
+        run: flutter pub get
+      - if: steps.PR.outputs.pr_found == 'true'
+        run: flutter analyze
+      - if: steps.PR.outputs.pr_found == 'true'
+        run: flutter test
+      - if: steps.PR.outputs.pr_found == 'true'
+        run: flutter build apk --release
+      - if: steps.PR.outputs.pr_found == 'true'
+        uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/flutter-apk/*.apk"
           token: ${{ vars.TOKEN }}
+  get_link:
+    name: get link to emulator
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: mshick/add-pr-comment@v2
+        with:
+          message: "link/to/emulator"
+
