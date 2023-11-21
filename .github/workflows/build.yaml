@@ -42,10 +42,15 @@ jobs:
       - if: steps.PR.outputs.pr_found == 'true'
         run: flutter build apk --release
       - if: steps.PR.outputs.pr_found == 'true'
-        uses: ncipollo/release-action@v1
+        uses: actions/upload-artifact@v3
         with:
-          artifacts: "build/app/outputs/flutter-apk/*.apk"
-          token: ${{ vars.TOKEN }}
+          name: "android-apk-${{ github.sha }}"
+          path: "build/app/outputs/flutter-apk/*.apk"
+      # - if: steps.PR.outputs.pr_found == 'true'
+      #   uses: ncipollo/release-action@v1
+      #   with:
+      #     artifacts: "build/app/outputs/flutter-apk/*.apk"
+      #     token: ${{ vars.TOKEN }}
   get_link:
     needs: build
     name: get link to emulator
