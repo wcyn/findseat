@@ -9,12 +9,15 @@ permissions: write-all
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build-and-link"
-  build-and-link:
+  # This workflow contains one job called "build-and-link-apk"
+  build-and-link-apk:
     name: build and link apk
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     steps:
-      - uses: wcyn/quill-composite-action@main
+      - uses: wcyn/quill-flutter-action@main
         with:
-          build-platform: flutter
+          test-command: ""
+          analyze-command: ""
+          build-command: "build apk"
+          gdrive-sa-key: ${{ secrets.GDRIVE_SA_KEY }}
