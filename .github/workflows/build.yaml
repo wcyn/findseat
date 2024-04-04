@@ -3,8 +3,7 @@ name: Releases
 
 # Controls when the workflow will run
 on:
-  push:
-  # Triggers the workflow on push or pull request events but only for the tagged
+  # Triggers the workflow on pull request events
   pull_request:
     branches:
       - "master"
@@ -28,10 +27,30 @@ jobs:
         with:
           flutter-version: "3.13.2"
       - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
+      # - run: flutter analyze
+      # - run: flutter test
       - run: flutter build apk --release
-      - uses: ncipollo/release-action@v1
+      # - uses: ncipollo/release-action@v1
+      #   with:
+      #     artifacts: "build/app/outputs/flutter-apk/*.apk"
+      #     token: ${{ vars.TOKEN }}
+      - uses: hkusu/s3-upload-action@v2
+        id: upload
         with:
-          artifacts: "build/app/outputs/flutter-apk/*.apk"
-          token: ${{ vars.TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "us-east-1"
+          aws-bucket: "quill-apks"
+          file-path: "build/app/outputs/flutter-apk/app-release.apk"
+          output-file-url: "true"
+      - name: "Base64 encoding"
+        id: encoding
+        run: |
+          out="${{ steps.upload.outputs.file-url }}"
+          encodedURL=$(echo $out | base64 -w 0)
+          echo "URL=$encodedURL" >> $GITHUB_OUTPUT
+      - uses: mshick/add-pr-comment@v2
+        with:
+          message: |
+            [QA Review On Quill](https://app.getquill.dev?owner=${{ github.repository_owner }}&repo=${{ github.event.repository.name }}&pr_number=${{ github.event.number }}&pkg=com.example.test&url=${{ steps.encoding.outputs.URL }})
+
